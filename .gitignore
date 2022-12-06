@@ -1,6 +1,8 @@
 .stack-work/
 .idea/
 input/
+test/
 out
 *~
 *.lock
+*.cabal

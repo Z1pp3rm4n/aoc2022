@@ -14,6 +14,27 @@ import Data.Foldable (foldl')
 import Data.Map.Internal ((!))
 import Data.Set (Set)
 
+run :: (IO String -> IO b) -> String -> IO b
+run program filename = do 
+  putStrLn "Test results = "
+  program (getTest filename)
+  putStrLn "Real results = "
+  program (getInput filename)
+
+runTest :: (IO String -> IO b) -> String -> IO b
+runTest program filename = do 
+  putStrLn "Test results = "
+  program (getTest filename)
+
+runReal :: (IO String -> IO b) -> String -> IO b
+runReal program filename = do 
+  putStrLn "Test results = "
+  program (getTest filename)
+
+
+getTest :: String -> IO String
+getTest fname = readFile ("test/" ++ fname)
+
 getInput :: String -> IO String
 getInput fname = readFile ("input/" ++ fname)
 
@@ -70,6 +91,8 @@ instance Ord Point where
 
 (!!!) :: [[a]] -> (Int,Int) -> a
 mx !!! (x,y) = (mx !! y) !! x
+
+
 
 -- to2DMap :: [[a]] -> Map Point a
 -- to2DMap arr2 = Map.fromList pointsToElem

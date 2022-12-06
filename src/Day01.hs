@@ -1,15 +1,16 @@
-module Day01 where
+module Day01 () where
+
 
 import Tools
 import Data.List.Split (split)
-import Data.List.Split.Internals (splitOn)
+import Data.List.Split.Internals (splitOn) 
 import Data.List (sort, sortBy)
 
-main = do
-    calories <- caloriesPerElf <$> getInput "01"
+day01 :: IO String -> IO()
+day01 input = do 
+    calories <- caloriesPerElf <$> input
     print (p1 calories)
     print (p2 calories)
-
 
 p1 :: [Int] -> Int
 p1 = maximum 
