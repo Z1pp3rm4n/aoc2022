@@ -28,7 +28,7 @@ runTest program filename = do
 
 runReal :: (IO String -> IO b) -> String -> IO b
 runReal program filename = do 
-  putStrLn "Test results = "
+  putStrLn "Real results = "
   program (getTest filename)
 
 
