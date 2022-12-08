@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 module Tools where
 
 import Text.Megaparsec (Parsec, parse, errorBundlePretty)
@@ -5,7 +6,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 import Data.Void (Void)
 import Data.List (group, sort)
 import Data.Char (digitToInt)
-import Text.Megaparsec.Char (digitChar, space)
+import Text.Megaparsec.Char (digitChar, space, string)
 import Control.Arrow ((&&&))
 import qualified Data.Map.Internal as Map
 import qualified Data.Set as Set
@@ -29,7 +30,7 @@ runTest program filename = do
 runReal :: (IO String -> IO b) -> String -> IO b
 runReal program filename = do 
   putStrLn "Real results = "
-  program (getTest filename)
+  program (getInput filename)
 
 
 getTest :: String -> IO String
@@ -92,27 +93,22 @@ instance Ord Point where
 (!!!) :: [[a]] -> (Int,Int) -> a
 mx !!! (x,y) = (mx !! y) !! x
 
+data Map2D a = Map2D Point Point (Map Point a) deriving Functor 
 
+instance Show a => Show (Map2D a) where
+  show (Map2D (Point xMin yMin) (Point xMax yMax) pMap) = string 
+    where
+      string = unlines (map showLine [yMin..yMax])
+      showLine y = concatMap (\x -> Map.findWithDefault " " (Point x y) pointToString) [xMin..xMax]
+      pointToString = fmap show pMap
 
--- to2DMap :: [[a]] -> Map Point a
--- to2DMap arr2 = Map.fromList pointsToElem
---   where
---     pointsToElem = map (\p@(Point x y) -> (p,arr2 !!! (x,y))) points
---     width = length (head arr2)
---     height = length arr2
---     points = [Point x y | x <- [0..width-1], y <- [0..height-1]]
--- 
--- print2DMap :: Map Point Char -> IO ()
--- print2DMap pMap = putStrLn string
---   where
---     string = unlines (map showLine [yMin..yMax])
---     showLine y = map (\x -> Map.findWithDefault ' ' (Point x y) pMap) [xMin..xMax]
---     points = Map.keysSet pMap
---     ((xMin,xMax),(yMin,yMax)) = getRange2D points
---     
--- getRange2D :: Set Point -> ((Int,Int),(Int,Int))
--- getRange2D points = ((xMin,xMax),(yMin,yMax))
---   where 
---     (xMin,xMax) = minAndMax (Set.map getX points)
---     (yMin,yMax) = minAndMax (Set.map getY points)
---     minAndMax = Set.findMin &&& Set.findMax
+to2DMap :: [[a]] -> Map2D a
+to2DMap arr2 = Map2D min max (Map.fromList pointsToElem)
+  where
+    min = Point 0 0
+    max = Point (width - 1) (height - 1)
+    
+    pointsToElem = map (\p@(Point x y) -> (p,arr2 !!! (x,y))) points
+    width = length (head arr2)
+    height = length arr2
+    points = [Point x y | x <- [0..width-1], y <- [0..height-1]]
