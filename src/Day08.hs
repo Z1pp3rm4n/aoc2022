@@ -4,11 +4,11 @@ import Tools
 import qualified Data.Map.Internal as M
 import Data.Char (digitToInt)
 
-testForest =  (fmap digitToInt) . to2DMap . lines <$> (getTest "08")
+testForest =  (fmap digitToInt) . fromArr2D . lines <$> (getTest "08")
 
 day08 :: IO String -> IO ()
 day08 input = do 
-    forest <- (fmap digitToInt) . to2DMap . lines <$> input
+    forest <- (fmap digitToInt) . fromArr2D . lines <$> input
     print (p1 forest)
     print (p2 forest)
 

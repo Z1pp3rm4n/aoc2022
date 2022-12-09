@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
-module Tools where
+{-# LANGUAGE InstanceSigs #-}
+module Tools (module Tools) where
 
 import Text.Megaparsec (Parsec, parse, errorBundlePretty)
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -14,6 +15,7 @@ import Data.Map.Internal (Map)
 import Data.Foldable (foldl')
 import Data.Map.Internal ((!))
 import Data.Set (Set)
+import qualified Data.Map as M
 
 run :: (IO String -> IO b) -> String -> IO b
 run program filename = do 
@@ -69,6 +71,8 @@ double = L.float
 
 
 -----------
+uniq :: Ord a => [a] -> [a]
+uniq = map head . group . sort 
 
 counts :: Ord a => [a] -> [(a,Int)]
 counts = map (head &&& length) . group . sort
@@ -79,6 +83,9 @@ repeatElems = map head . filter ((>1) . length) . group .sort
 countElem :: Eq a => a -> [a] -> Int
 countElem x = length . filter (== x)
 
+countUniq :: Ord a => [a] -> Int
+countUniq = length . uniq
+
 fpow :: Int -> (a -> a) -> a -> a
 fpow n f x = iterate f x !! n
 
@@ -86,6 +93,7 @@ data Point = Point {getX :: Int, getY :: Int} deriving (Eq, Show)
 data Line = Line Point Point deriving (Eq, Show)
 
 instance Ord Point where
+  compare :: Point -> Point -> Ordering
   compare (Point x1 y1) (Point x2 y2) =
     if y1 == y2 then compare x1 x2
     else compare y1 y2
@@ -93,17 +101,10 @@ instance Ord Point where
 (!!!) :: [[a]] -> (Int,Int) -> a
 mx !!! (x,y) = (mx !! y) !! x
 
-data Map2D a = Map2D Point Point (Map Point a) deriving Functor 
+data Map2D a = Map2D Point Point (Map Point a) deriving Functor   
 
-instance Show a => Show (Map2D a) where
-  show (Map2D (Point xMin yMin) (Point xMax yMax) pMap) = string 
-    where
-      string = unlines (map showLine [yMin..yMax])
-      showLine y = concatMap (\x -> Map.findWithDefault " " (Point x y) pointToString) [xMin..xMax]
-      pointToString = fmap show pMap
-
-to2DMap :: [[a]] -> Map2D a
-to2DMap arr2 = Map2D min max (Map.fromList pointsToElem)
+fromArr2D :: [[a]] -> Map2D a
+fromArr2D arr2 = Map2D min max (Map.fromList pointsToElem)
   where
     min = Point 0 0
     max = Point (width - 1) (height - 1)
@@ -112,3 +113,16 @@ to2DMap arr2 = Map2D min max (Map.fromList pointsToElem)
     width = length (head arr2)
     height = length arr2
     points = [Point x y | x <- [0..width-1], y <- [0..height-1]]
+
+fromPointMap :: Map Point a -> Map2D a
+fromPointMap pMap = Map2D (Point xMin yMin) (Point xMax yMax) pMap
+  where 
+    points = map fst . M.toList $ pMap
+    (xMin, xMax) = (minimum &&& maximum) $ map getX points
+    (yMin, yMax) = (minimum &&& maximum) $ map getY points
+
+toString2DMap :: Map2D Char -> String
+toString2DMap (Map2D (Point xMin yMin) (Point xMax yMax) pMap) = string 
+    where
+      string = unlines (map showLine [yMin..yMax])
+      showLine y = map (\x -> Map.findWithDefault '.' (Point x y) pMap) [xMin..xMax]
